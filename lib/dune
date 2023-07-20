@@ -1,0 +1,4 @@
+(library
+ (name zk)
+ (public_name zk)
+ (libraries zarith))

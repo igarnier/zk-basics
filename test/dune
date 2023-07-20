@@ -1,0 +1,4 @@
+(test
+ (name zktest)
+ (libraries zk crowbar)
+)
