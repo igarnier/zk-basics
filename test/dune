@@ -1,4 +1,4 @@
-(test
- (name zktest)
- (libraries zk crowbar)
+(tests
+ (names zktest ediv)
+ (libraries zk crowbar zarith)
 )

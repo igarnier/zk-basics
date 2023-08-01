@@ -1,6 +1,6 @@
 open Zk
 
-module P = Poly.Make (struct
+module P = Poly.Make_ring (struct
   include Z
 
   let pp = Z.pp_print

@@ -1,8 +1,10 @@
-module Make (R : Intf.Ring_std) : sig
+module Make_ring (R : Intf.Ring_std) : sig
   include Intf.Ring_std with type t = R.t array
 
   val canonical : t -> t
   val degree : t -> int
+  val smul : R.t -> t -> t
+  val monomial : R.t -> int -> t
 end = struct
   type t = R.t array
 
@@ -25,6 +27,12 @@ end = struct
   let degree p = Array.length p - 1
   let one = [| R.one |]
   let get p i = if i >= Array.length p then R.zero else p.(i)
+
+  let monomial coeff degree =
+    if degree < 0 then invalid_arg "monomial";
+    let res = Array.make (degree + 1) R.zero in
+    res.(degree) <- coeff;
+    res
 
   let add p1 p2 =
     let len = Int.max (Array.length p1) (Array.length p2) in
@@ -50,10 +58,7 @@ end = struct
     done;
     coeffs |> canonical
 
-  let div (p1 : t) (p2 : t) =
-    let deg_p1 = degree p1 in
-    let deg_p2 = degree p2 in
-    if deg_p1 < deg_p2 then (zero, p1) else assert false
+  let smul c p = Array.map (fun x -> R.mul c x) p |> canonical
 
   let equal p1 p2 =
     let deg_p1 = degree p1 in
@@ -86,4 +91,33 @@ end = struct
           Format.fprintf fmtr "%s%a x" sep pp_nothing_if_one p.(i)
         else Format.fprintf fmtr "%s%a x^%d" sep pp_nothing_if_one p.(i) i
     done
+end
+
+module Make_euclidian_domain (R : Intf.Finite_field_std) : sig
+  include Intf.Euclidian_domain_std with type t = R.t array
+
+  val canonical : t -> t
+  val degree : t -> int
+  val smul : R.t -> t -> t
+  val monomial : R.t -> int -> t
+end = struct
+  include Make_ring (R)
+
+  let head (p : t) =
+    (* Assumption: [p] is canonical *)
+    p.(Array.length p - 1)
+
+  let ediv (p1 : t) (p2 : t) =
+    if equal p2 zero then invalid_arg "Poly.div";
+    let deg = degree p2 in
+    let rec loop q r =
+      let deg_r = degree r in
+      if equal r zero || deg_r < deg then (q, r)
+      else
+        let c = monomial (R.div (head r) (head p2)) (deg_r - deg) in
+        let r' = sub r (mul c p2) in
+        let q' = add q c in
+        loop q' r'
+    in
+    loop zero p1
 end

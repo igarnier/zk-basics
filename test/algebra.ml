@@ -56,6 +56,24 @@ struct
   let () = add_test (n "neg_sub") @@ apply_pair X.gen neg_sub
 end
 
+module Euclidian_domain
+    (N : Name)
+    (X : Generator)
+    (G : Intf.Euclidian_domain with type t = X.t) =
+struct
+  module Ring_props = Ring (N) (X) (G)
+  open G
+
+  let ediv a b =
+    if X.(b = zero) then true
+    else
+      let q, r = ediv a b in
+      X.(a = add (mul q b) r)
+
+  let n s = sf "%s: %s" N.name s
+  let () = add_test (n "ediv") @@ apply_pair X.gen ediv
+end
+
 module Commutative_ring
     (N : Name)
     (X : Generator)
@@ -72,6 +90,27 @@ struct
   let () =
     add_test (n "mul_commutative")
     @@ apply_pair X.gen (fun x y -> mul x y = mul y x)
+end
+
+module Field (N : Name) (X : Generator) (G : Intf.Field with type t = X.t) =
+struct
+  module Commutative_ring_props = Commutative_ring (N) (X) (G)
+  open G
+  open X
+
+  let n s = sf "%s: %s" N.name s
+  let if_nonzero x pred = if x = zero then true else pred ()
+
+  let () =
+    add_test (n "div_zero_l")
+      (apply X.gen (fun x -> if_nonzero x (fun () -> div zero x = zero)))
+
+  let () = add_test (n "div_neutral") @@ apply X.gen @@ fun x -> div x one = x
+
+  let () =
+    add_test (n "mul_inverse")
+    @@ apply_pair X.gen (fun x y ->
+           if_nonzero x (fun () -> mul x (div y x) = y))
 end
 
 module Module

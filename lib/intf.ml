@@ -33,6 +33,17 @@ module type Ring_std = sig
   include Std with type t := t
 end
 
+module type Euclidian_domain = sig
+  include Ring
+
+  val ediv : t -> t -> t * t
+end
+
+module type Euclidian_domain_std = sig
+  include Euclidian_domain
+  include Std with type t := t
+end
+
 module type Field = sig
   include Ring
 
@@ -42,9 +53,11 @@ end
 module type Finite_field = sig
   include Field
 
-  val characteristic : Z.t (* prime *)
-  val order : int (* order = characteristic ^ k for some k *)
-  val primitive : t
+  (* val characteristic : Z.t *)
+  (* prime *)
+  val order : Z.t
+  (* order = characteristic ^ k for some k *)
+  (* val primitive : t *)
   (* A primitive element of the finite field *)
 
   (* For any element of the field {m x}, {m x + x + x ... + x} p times = 0 *)
@@ -52,6 +65,11 @@ module type Finite_field = sig
   (* Non-zero elements of a finite field form a cyclic group *)
 
   (* (X^q - X) = (X - x1) .. (X - xq) *)
+end
+
+module type Finite_field_std = sig
+  include Finite_field
+  include Std with type t := t
 end
 
 (** Modules over a ring [R]. *)
