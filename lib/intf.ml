@@ -23,6 +23,19 @@ module type Abelian_group = sig
   val neg : t -> t
 end
 
+module type Abelian_group_std = sig
+  include Abelian_group
+  include Std with type t := t
+end
+
+module type Pairing = sig
+  type g1
+  type g2
+  type gt
+
+  val pairing : g1 -> g2 -> gt
+end
+
 module type Ring = sig
   include Monoid
   include Abelian_group with type t := t
@@ -81,4 +94,20 @@ module type Module = sig
   include Abelian_group with type t := t
 
   val smul : R.t -> t -> t
+end
+
+module type Module_std = sig
+  include Module
+  include Std with type t := t
+end
+
+module type Polynomial_ring = sig
+  module R : Ring
+  include Euclidian_domain
+
+  val monomial : R.t -> int -> t
+  val smul : R.t -> t -> t
+  val degree : t -> int
+  val foldi : (int -> R.t -> 'a -> 'a) -> t -> 'a -> 'a
+  val is_zero : t -> bool
 end
